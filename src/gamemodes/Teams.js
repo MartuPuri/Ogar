@@ -11,7 +11,7 @@ function Teams() {
     this.colorFuzziness = 32;
 
     // Special
-    this.teamAmount = 3; // Amount of teams. Having more than 3 teams will cause the leaderboard to work incorrectly (client issue).
+    this.teamAmount = 2; // Amount of teams. Having more than 3 teams will cause the leaderboard to work incorrectly (client issue).
     this.colors = [
         {'r': 223, 'g': 0, 'b': 0},
         {'r': 0, 'g': 223, 'b': 0},
@@ -43,6 +43,17 @@ Teams.prototype.getTeamColor = function(team) {
 
 Teams.prototype.onPlayerSpawn = function(gameServer,player) {
     // Random color based on team
+    var name = player.getName();
+    if (name.indexOf("ios-") > -1) {
+        player.setName(name.replace("ios-",""));
+        player.team = 0;
+    } else if (name.indexOf("android-") > -1) {
+        player.setName(name.replace("android-", ""))
+        player.team = 1;
+    } else {
+        //No spawn
+        return;
+    }
     player.color = this.getTeamColor(player.team);
     // Spawn player
     gameServer.spawnPlayer(player);
