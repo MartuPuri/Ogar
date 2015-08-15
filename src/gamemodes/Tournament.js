@@ -175,6 +175,26 @@ Tournament.prototype.onCellRemove = function(cell) {
     }
 };
 
+Tournament.prototype.getSortedContenders = function() {
+    this.contenders[0].getScore(true);
+    var sorted = [this.contenders[0]];
+    for (var i = 1; i < this.contenders.length; i++) {
+        var player = this.contenders[i];
+        var score = player.getScore(true);
+        var len = sorted.length
+        for (var j = 0; j < len; j++) {
+            if (score > sorted[j].getScore(false)) {
+                sorted.splice(j, 0, player);
+                break;
+            }
+        }
+        if (sorted.length === len) {
+            sorted.push(player);
+        }
+    }
+    return sorted;
+}
+
 Tournament.prototype.updateLB = function(gameServer) {
     var lb = gameServer.leaderboard;
 
@@ -212,6 +232,10 @@ Tournament.prototype.updateLB = function(gameServer) {
                 this.endGameTimeout(gameServer);
             } else {
                 this.timeLimit--;
+            }
+            var sorted = this.getSortedContenders();
+            for (var i = 0; i < sorted.length; i++) {
+                lb[4 + i] = sorted[i].getName();
             }
             break;
         case 3:
