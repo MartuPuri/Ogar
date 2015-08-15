@@ -45,6 +45,7 @@ Commands.list = {
         console.log("[Console] playerlist : get list of players and bots");
         console.log("[Console] pause      : pause game , freeze all cells");
         console.log("[Console] reload     : reload config");
+        console.log("[Console] start      : start tournament");
         console.log("[Console] status     : get server status");
         console.log("[Console] tp         : teleport player to specified location");
         console.log("[Console] virus      : spawn virus at a specified Location");
@@ -327,6 +328,15 @@ Commands.list = {
     reload: function(gameServer) {
         gameServer.loadConfig();
         console.log("[Console] Reloaded the config file successfully");
+    },
+    start: function(gameServer) {
+        console.log(GameMode.get(gameServer.gameMode.ID));
+        if (gameServer.gameMode.ID === 10) {
+            gameServer.gameMode.startGamePrep(gameServer);
+            console.log("[Console] Starting tournament!");
+        } else {
+            console.log("[Console] Game isn't in tournament mode!");
+        }
     },
     status: function(gameServer,split) {
         // Get amount of humans/bots
