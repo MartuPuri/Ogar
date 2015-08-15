@@ -10,14 +10,25 @@ function Teams() {
     this.haveTeams = true;
     this.colorFuzziness = 32;
 
-    // Special
-    this.teamAmount = 3; // Amount of teams. Having more than 3 teams will cause the leaderboard to work incorrectly (client issue).
     this.colors = [
-        {'r': 223, 'g': 0, 'b': 0},
-        {'r': 0, 'g': 223, 'b': 0},
-        {'r': 0, 'g': 0, 'b': 223},
-    ]; // Make sure you add extra colors here if you wish to increase the team amount [Default colors are: Red, Green, Blue]
+        {'r':235, 'g': 75, 'b':  0},
+        {'r':225, 'g':125, 'b':255},
+        {'r':180, 'g':  7, 'b': 20},
+        {'r': 80, 'g':170, 'b':240},
+        {'r':180, 'g': 90, 'b':135},
+        {'r':195, 'g':240, 'b':  0},
+        {'r':150, 'g': 18, 'b':255},
+        {'r': 80, 'g':245, 'b':  0},
+        {'r':165, 'g': 25, 'b':  0},
+        {'r': 80, 'g':145, 'b':  0},
+        {'r': 80, 'g':170, 'b':240},
+        {'r': 55, 'g': 92, 'b':255},
+    ];
     this.nodes = []; // Teams
+    this.teamMap = {
+        teamAmount: 0,
+        teams :{}
+    };
 }
 
 module.exports = Teams;
@@ -32,11 +43,12 @@ Teams.prototype.fuzzColorComponent = function(component) {
 
 Teams.prototype.getTeamColor = function(team) {
     var color = this.colors[team];
-    return {
-        r: this.fuzzColorComponent(color.r),
-        b: this.fuzzColorComponent(color.b),
-        g: this.fuzzColorComponent(color.g)
-    };
+    return color;
+//    return {
+ //       r: this.fuzzColorComponent(color.r),
+  //      b: this.fuzzColorComponent(color.b),
+   //     g: this.fuzzColorComponent(color.g)
+   // };
 };
 
 // Override
@@ -44,54 +56,47 @@ Teams.prototype.getTeamColor = function(team) {
 Teams.prototype.onPlayerSpawn = function(gameServer,player) {
     // Random color based on team
     var name = player.getName();
-    if (name.indexOf("ios-") > -1) {
-        player.setName(name.replace("ios-",""));
-        player.team = 0;
-    } else if (name.indexOf("android-") > -1) {
-        player.setName(name.replace("android-", ""))
-        player.team = 1;
-    } else if (name.indexOf("web-") > -1) {
-        player.setName(name.replace("web-", ""))
-        player.team = 2;
+
+    var dash = name.indexOf("-");
+    
+    if (dash === -1) {
+        player.setName("SIN EQUIPO");
+        player.color = {'r':0, 'g': 0, 'b':  0};
+        player.team = null;
     } else {
-        //No spawn
-        return;
+        var team = name.substring(0, dash);
+	var playerName = name.substring(dash + 1);
+        if (!this.teamMap.teams.hasOwnProperty(team)) {
+            this.teamMap.teams[team] = this.teamMap.teamAmount;
+            this.nodes[this.teamMap.teamAmount++] = [];
+	}
+ 
+        player.setName(playerName)
+        player.team = this.teamMap.teams[team];
+        player.color = this.getTeamColor(player.team);
     }
-    player.color = this.getTeamColor(player.team);
     // Spawn player
     gameServer.spawnPlayer(player);
 };
 
 Teams.prototype.onServerInit = function(gameServer) {
-    // Set up teams
-    for (var i = 0; i < this.teamAmount; i++) {
-        this.nodes[i] = [];
-    }
-
-    // migrate current players to team mode
-    for (var i = 0; i < gameServer.clients.length; i++) {
-        var client = gameServer.clients[i].playerTracker;
-        this.onPlayerInit(client);
-        client.color = this.getTeamColor(client.team);
-        for (var j = 0; j < client.cells.length; j++) {
-            var cell = client.cells[j];
-            cell.setColor(client.color);
-            this.nodes[client.team].push(cell);
-        }
-    }
 };
 
 Teams.prototype.onPlayerInit = function(player) {
-    // Get random team
-    player.team = Math.floor(Math.random() * this.teamAmount);
 };
 
 Teams.prototype.onCellAdd = function(cell) {
+    if (cell.owner.getTeam() === null) {
+        return;
+    }
     // Add to team list
     this.nodes[cell.owner.getTeam()].push(cell);
 };
 
 Teams.prototype.onCellRemove = function(cell) {
+    if (cell.owner.getTeam() === null) {
+        return;
+    }
     // Remove from team list
     var index = this.nodes[cell.owner.getTeam()].indexOf(cell);
     if (index != -1) {
@@ -140,11 +145,27 @@ Teams.prototype.onCellMove = function(x1,y1,cell) {
     }
 };
 
+Teams.prototype.messages = ["NOP :P", "PRIMERO METETE EN UN EQUIPO"];
+
+Teams.prototype.pressW = function(gameServer, player) {
+    if (player.getTeam() === null) {
+        player.setName(this.messages[Math.floor(Math.random() * 2)]);
+    }
+    Mode.prototype.pressW(gameServer, player);
+}
+
+Teams.prototype.pressSpace = function(gameServer, player) {
+    if (player.getTeam() === null) {
+        player.setName(this.messages[Math.floor(Math.random() * 2)]);
+    }
+    Mode.prototype.pressSpace(gameServer, player);
+}
+
 Teams.prototype.updateLB = function(gameServer) {
     var total = 0;
     var teamMass = [];
     // Get mass
-    for (var i = 0; i < this.teamAmount; i++) {
+    for (var i = 0; i < this.teamMap.teamAmount; i++) {
         // Set starting mass
         teamMass[i] = 0;
 
@@ -161,7 +182,7 @@ Teams.prototype.updateLB = function(gameServer) {
         }
     }
     // Calc percentage
-    for (var i = 0; i < this.teamAmount; i++) {
+    for (var i = 0; i < this.teamMap.teamAmount; i++) {
         // No players
         if (total <= 0) {
             continue;

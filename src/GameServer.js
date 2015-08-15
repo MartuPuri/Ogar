@@ -680,6 +680,9 @@ GameServer.prototype.shootVirus = function(parent) {
 
 GameServer.prototype.getCellsInRange = function(cell) {
     var list = new Array();
+    if (this.gameMode.haveTeams && cell.owner.getTeam() === null) {
+        return list;
+    }
     var squareR = cell.getSquareSize(); // Get cell squared radius
 
     // Loop through all cells that are visible to the cell. There is probably a more efficient way of doing this but whatever
@@ -741,6 +744,7 @@ GameServer.prototype.getCellsInRange = function(cell) {
                     if ((check.owner != cell.owner) && (check.owner.getTeam() == cell.owner.getTeam())) {
                         continue;
                     }
+                    
                 }
                 break;
             default:
