@@ -175,6 +175,18 @@ Tournament.prototype.onCellRemove = function(cell) {
     }
 };
 
+Tournament.prototype.pressW = function(gameserver, player) {
+   if (this.gamePhase === 2) {
+       Mode.prototype.pressW(gameserver, player);
+   }
+}
+
+Tournament.prototype.pressSpace = function(gameserver, player) {
+   if (this.gamePhase === 2) {
+       Mode.prototype.pressSpace(gameserver, player);
+   }
+}
+
 Tournament.prototype.getSortedContenders = function() {
     this.contenders[0].getScore(true);
     var sorted = [this.contenders[0]];
