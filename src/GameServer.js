@@ -16,6 +16,7 @@ var Logger = require('./modules/log');
 // GameServer implementation
 function GameServer() {
     // Startup 
+    this.colorIndex = 0;
     this.run = true;
     this.lastNodeId = 1;
     this.lastPlayerId = 1;
@@ -106,6 +107,11 @@ function GameServer() {
         {'r': 80, 'g':145, 'b':  0},
         {'r': 80, 'g':170, 'b':240},
         {'r': 55, 'g': 92, 'b':255},
+        {'r': 255, 'g': 0, 'b':0},
+        {'r': 0, 'g': 0, 'b':255},
+        {'r': 0, 'g': 255, 'b':0},
+        {'r': 111, 'g': 111, 'b':111},
+        {'r': 181, 'g': 175, 'b':0},
     ];
 }
 
@@ -279,8 +285,11 @@ GameServer.prototype.getRandomSpawn = function() {
 };
 
 GameServer.prototype.getRandomColor = function() {
-    var index = Math.floor(Math.random() * this.colors.length);
-    var color = this.colors[index];
+    if (this.colors.length == this.colorIndex) {
+        this.colorIndex = 0;
+    }
+    var color = this.colors[this.colorIndex++];
+
     return {
         r: color.r,
         b: color.b,
